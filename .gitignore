@@ -1,0 +1,113 @@
+# compiled output
+/dist
+/node_modules
+/build
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+/coverage
+/.nyc_output
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# temp directory
+.temp
+.tmp
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+src/generated/prisma
+
+ecosystem.config.js
+
+/uploads/avatar/*
+!/uploads/avatar/.gitkeep
+!/uploads/avatar/default-avatar.jpg
+
+/uploads/category/*
+!/uploads/category/.gitkeep
+
+/uploads/canteen-map/*
+!/uploads/canteen-map/.gitkeep
+
+/uploads/payment-proof/*
+!/uploads/payment-proof/.gitkeep
+
+/uploads/disbursement-proof/*
+!/uploads/disbursement-proof/.gitkeep
+
+/uploads/message-media-image/*
+!/uploads/message-media-image/.gitkeep
+
+/uploads/message-media-video/*
+!/uploads/message-media-video/.gitkeep
+
+/uploads/complaint-proof/*
+!/uploads/complaint-proof/.gitkeep
+
+/uploads/shop/*
+!/uploads/shop/.gitkeep
+!/uploads/shop/kedai-subarjo.webp
+!/uploads/shop/placeholder.svg
+
+/uploads/category/*
+!/uploads/category/.gitkeep
+!/uploads/category/ayam-geprek.jpg
+!/uploads/category/es-buah.jpg
+!/uploads/category/gorengan.jpg
+!/uploads/category/placeholder.svg
+
+/uploads/qris-qrcode/*
+!/uploads/qris-qrcode/.gitkeep
+
+/uploads/shop-qrcode/*
+!/uploads/shop-qrcode/.gitkeep
+
+/uploads/table-qrcode/*
+!/uploads/table-qrcode/.gitkeep
+
+/uploads/product/*
+!/uploads/product/.gitkeep
+!/uploads/shop/placeholder.svg
+
+/uploads/testimony/*
+!/uploads/testimony/.gitkeep

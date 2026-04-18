@@ -1,0 +1,93 @@
+model Order {
+  id         String   @id @default(uuid())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  customer    Customer @relation(fields: [customer_id], references: [id])
+  customer_id String
+
+  shop              Shop      @relation(fields: [shop_id], references: [id])
+  shop_id           String
+  estimation        Int? // dalam menit
+  payment_proof_url String?
+  processed_at      DateTime? // waktu ketika order mulai diproses setelah pembayaran di verifikasi
+
+  rejected_reason  String?
+  cancelled_reason String?
+  cancelled_by_id  String?
+
+  total_price Float
+
+  conversation_id String
+
+  status OrderStatus
+  note   String?
+
+  type OrderType @default(READY)
+
+  testimony ShopTestimony?
+  complaint ShopComplaint?
+  refund    Refund?
+
+  payment_method PaymentMethod
+
+  order_items OrderItem[]
+
+  post_order_type PostOrderType @default(DELIVERY_TO_TABLE)
+  table_number    Int?
+  floor           Int?
+  // courier_journey CourierJourney? @relation(fields: [courier_journey_id], references: [id])
+  // courier_journey_id String?     @unique // Relasi ke CourierJourney untuk COURIER_DELIVERY
+
+  @@index([shop_id, status]) // Sangat penting untuk dashboard penjual
+  @@index([customer_id, status]) // Penting untuk riwayat order pelanggan
+  @@index([shop_id, created_at]) // Untuk dashboard penjual (sortir by terbaru)
+  @@index([customer_id, created_at]) // Untuk riwayat pelanggan (sortir by terbaru)
+  @@index([status])
+  @@map("orders")
+}
+
+enum OrderType {
+  READY
+  PREORDER
+}
+
+model OrderItem {
+  id         String  @id @default(nanoid())
+  order      Order   @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id   String
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  product_id String
+
+  selected_options ProductOptionValue[]
+
+  quantity     Int
+  // Harga Satuan Dasar (Snapshot saat checkout)
+  price_at_add Float
+  // Quantity * (price_at_add + 1000 + total_options_price)
+  subtotal     Float
+  note         String?
+
+  refund_items RefundItem[]
+
+  @@index([order_id])
+  @@map("order_items")
+}
+
+enum OrderStatus {
+  PENDING_CONFIRMATION // customer buat order, tunggu shop konfirmasi
+  WAITING_PAYMENT // shop setuju, customer harus bayar
+  WAITING_CUSTOMER_ESTIMATION_CONFIRMATION // tunggu customer setuju dengan estimasi order
+  WAITING_SHOP_CONFIRMATION // customer sudah upload bukti
+  PROCESSING // shop terima pembayaran, pesanan diproses
+  COMPLETED // order selesai
+  REJECTED // ditolak karena stok tidak ada
+  PAYMENT_REJECTED // bukti pembayaran tidak valid
+  CANCELLED // pembatalan
+}
+
+enum PostOrderType {
+  DELIVERY_TO_TABLE
+  TAKEAWAY
+  COURIER_DELIVERY
+}

@@ -1,0 +1,24 @@
+model ShopTestimony {
+    id      Int    @id @default(autoincrement())
+    message String @db.Text
+    rating  Int
+
+    created_at DateTime @default(now())
+
+    order    Order  @relation(fields: [order_id], references: [id], onDelete: Cascade)
+    order_id String @unique
+
+    @@map("shop_testimonies")
+}
+
+model AppTestimony {
+    id      Int     @id @default(autoincrement())
+    message String  @db.Text
+    from    String
+    role    String?
+    rating  Int     @default(5)
+
+    created_at DateTime @default(now())
+
+    @@map("app_testimonies")
+}

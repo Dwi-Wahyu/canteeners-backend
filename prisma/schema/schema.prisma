@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Canteen {
+  id        Int     @id @default(autoincrement())
+  name      String
+  image_url String
+  shops     Shop[]
+  slug      String? @unique
+
+  maps    CanteenMap[]
+  qrcodes TableQRCode[]
+
+  @@map("canteens")
+}
+
+model CanteenMap {
+  id Int @id @default(autoincrement())
+
+  image_url   String
+  floor       Int
+  canteen     Canteen       @relation(references: [id], fields: [canteen_id])
+  canteen_id  Int
+  qrcodes     TableQRCode[]
+  table_count Int           @default(0)
+
+  @@map("canteen_maps")
+}
+
+model TableQRCode {
+  id String @id @default(uuid())
+
+  table_number Int
+  floor        Int
+  canteen      Canteen    @relation(references: [id], fields: [canteen_id])
+  canteen_id   Int
+  image_url    String
+  map          CanteenMap @relation(references: [id], fields: [map_id])
+  map_id       Int
+
+  @@unique([table_number, canteen_id, floor])
+  @@map("table_qrcodes")
+}
+
+model Faq {
+  id       Int    @id @default(autoincrement())
+  question String
+  answer   String @db.Text
+
+  @@map("faqs")
+}

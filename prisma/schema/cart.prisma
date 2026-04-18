@@ -1,0 +1,67 @@
+model Cart {
+  id          String     @id @default(uuid())
+  customer    Customer   @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  customer_id String     @unique
+  status      CartStatus @default(ACTIVE)
+  expires_at  DateTime?
+
+  shop_carts ShopCart[]
+
+  @@index([customer_id])
+  @@index([status])
+  @@map("carts")
+}
+
+enum CartStatus {
+  ACTIVE // Sedang digunakan (default)
+  CHECKED_OUT // Semua toko sudah dicheckout
+  ABANDONED // Lama tidak dibuka (>1 jam)
+  EXPIRED // Kadaluarsa (>7 hari)
+  DELETED // Dihapus manual oleh user
+}
+
+model ShopCart {
+  id String @id @default(uuid())
+
+  cart            Cart          @relation(fields: [cart_id], references: [id], onDelete: Cascade)
+  cart_id         String
+  shop            Shop          @relation(fields: [shop_id], references: [id])
+  shop_id         String
+  payment_method  PaymentMethod @default(CASH)
+  post_order_type PostOrderType @default(DELIVERY_TO_TABLE)
+
+  total_price Float   @default(0)
+  note        String?
+
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
+
+  items    CartItem[]
+  order_id String?
+
+  @@index([cart_id])
+  @@index([shop_id])
+  @@map("shop_carts")
+}
+
+model CartItem {
+  id           String   @id @default(nanoid())
+  shop_cart    ShopCart @relation(fields: [shop_cart_id], references: [id], onDelete: Cascade)
+  shop_cart_id String
+  product      Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  product_id   String
+
+  selected_options ProductOptionValue[]
+
+  quantity     Int
+  // Harga Satuan Dasar (Snapshot saat ditambahkan)
+  price_at_add Float
+  // Quantity * (price_at_add + 1000 + total_options_price)
+  subtotal     Float
+
+  note String?
+
+  @@index([shop_cart_id])
+  @@index([product_id])
+  @@map("cart_items")
+}

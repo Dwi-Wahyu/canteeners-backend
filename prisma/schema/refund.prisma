@@ -1,0 +1,58 @@
+model Refund {
+  id       String @id @default(uuid())
+  order    Order  @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id String @unique
+
+  complaint_proof_url    String? // bukti complaint   
+  disbursement_proof_url String? // bukti tf refund sudah dibayar
+  disbursement_mode      RefundDisbursementMode // mode pengembalian dana
+
+  amount      Float // jumlah refund
+  reason      RefundReason
+  status      RefundStatus @default(PENDING)
+  description String?      @db.Text
+
+  requested_at     DateTime  @default(now())
+  processed_at     DateTime?
+  rejected_reason  String?
+  escalated_reason String? // alasan dieskalasi ke admin
+
+  affected_items RefundItem[] // relasi ke item yang bermasalah
+
+  @@index([order_id])
+  @@index([status])
+  @@map("refunds")
+}
+
+model RefundItem {
+  id            String @id @default(uuid())
+  refund_id     String
+  order_item_id String
+
+  refund     Refund    @relation(fields: [refund_id], references: [id], onDelete: Cascade)
+  order_item OrderItem @relation(fields: [order_item_id], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+
+  @@unique([refund_id, order_item_id])
+  @@index([refund_id])
+  @@index([order_item_id])
+  @@map("refund_items")
+}
+
+enum RefundReason {
+  LATE_DELIVERY // terlambat > estimasi
+  WRONG_ORDER // salah pesanan
+  DAMAGED_FOOD // rusak
+  MISSING_ITEM // kurang item
+  OTHER // lain-lain
+}
+
+enum RefundStatus {
+  PENDING // menunggu proses
+  APPROVED // disetujui
+  REJECTED // ditolak
+  PROCESSED // uang sudah dikembalikan (butuh konfirmasi user)
+  CANCELLED // dibatalkan user
+  ESCALATED // dieskalasi ke admin karena deteksi fraud
+}
