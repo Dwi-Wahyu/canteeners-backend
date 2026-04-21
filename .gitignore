@@ -84,6 +84,9 @@ ecosystem.config.js
 /uploads/complaint-proof/*
 !/uploads/complaint-proof/.gitkeep
 
+/uploads/banners/*
+!/uploads/banners/.gitkeep
+
 /uploads/shop/*
 !/uploads/shop/.gitkeep
 !/uploads/shop/kedai-subarjo.webp
