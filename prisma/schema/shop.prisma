@@ -14,7 +14,8 @@ model Shop {
 
     products Product[]
     orders   Order[]
-    owner    Owner     @relation(fields: [owner_id], references: [id])
+    discounts Discount[]
+    owner    Owner     @relation(fields: [owner_id], references: [id], onDelete: Cascade)
     owner_id String    @unique
 
     order_mode               ShopOrderMode          @default(READY_ONLY) // metode menyiapkan order    
@@ -30,27 +31,45 @@ model Shop {
     average_rating Float @default(0)
     total_ratings  Int   @default(0)
 
+    is_auto_accept Boolean @default(false)
+
     shop_carts ShopCart[]
+    specializations ShopCategory[]
 
     @@index([canteen_id])
     @@index([name])
     @@map("shops")
 }
 
+model ShopCategory {
+    shop    Shop   @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+    shop_id String
+
+    category    Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+    category_id Int
+
+    @@id([shop_id, category_id])
+    @@index([category_id])
+    @@index([shop_id])
+    @@map("shop_categories")
+}
+
 model ShopBilling {
     id String @id @default(nanoid())
 
-    shop    Shop   @relation(fields: [shop_id], references: [id])
+    shop    Shop   @relation(fields: [shop_id], references: [id], onDelete: Cascade)
     shop_id String
 
     start_date DateTime
     end_date   DateTime
-    // Jumlah komisi yang harus dibayar (1000 per quantity order item)
-    subtotal   Float
+    // Jumlah komisi yang harus dibayar kedai ke platform
+    commission_total   Float @default(0)
+    // Jumlah subsidi voucher platform yang harus dibayar platform ke kedai
+    subsidy_total      Float @default(0)
     // Jumlah refund yang di proses
-    refund     Float
-    // Total akhir yang harus dibayar (subtotal - refund)
-    total      Float
+    refund_total     Float @default(0)
+    // Total akhir yang harus diselesaikan (commission_total - subsidy_total - refund_total)
+    net_total      Float @default(0)
     status     ShopBillingStatus @default(UNPAID)
 
     @@map("shop_billings")
@@ -109,7 +128,7 @@ model Payment {
     additional_price Float?
     active           Boolean       @default(true)
 
-    shop    Shop   @relation(fields: [shop_id], references: [id])
+    shop    Shop   @relation(fields: [shop_id], references: [id], onDelete: Cascade)
     shop_id String
 
     @@unique([shop_id, method])

@@ -1,0 +1,48 @@
+name: Build and Deploy Staging (Backend)
+
+on:
+  push:
+    branches: [staging]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:staging
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # Ganti dengan path folder root project Anda di server
+            cd ~/canteeners-source-code 
+
+            # Pull image terbaru
+            docker pull ghcr.io/${{ github.repository }}:staging
+
+            # Restart service backend saja
+            docker-compose -f docker-compose.staging.yml up -d backend-staging
+
+            # Jalankan migrasi prisma
+            docker exec canteeners-backend-staging npx prisma migrate deploy

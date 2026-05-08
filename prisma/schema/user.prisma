@@ -22,6 +22,8 @@ model User {
     received_reports UserReport[] @relation("ReceivedReports")
 
     fcm_tokens UserFcmToken[]
+    
+    event_usage EventUsage?
 
     @@index([last_login])
     @@index([role])
@@ -55,6 +57,7 @@ enum FcmPlatform {
 }
 
 enum Role {
+    SUPERADMIN
     ADMIN
     CUSTOMER
     SHOP_OWNER
@@ -98,11 +101,20 @@ model Customer {
     orders Order[]
     cart   Cart?
 
+    discounts CustomerDiscount[]
+
     // Data posisi terakhir pilih meja
     canteen_id    Int?
     floor         Int?
     table_number  Int?
     last_visit_at DateTime?
+
+    has_used_referral  Boolean @default(false)
+    used_referral_code String?
+
+    referral_code String? @unique
+
+    referral_usage_count Int @default(0) // maksimal 3, setelah itu diklaim dan direset 0
 
     updated_at DateTime @updatedAt
 

@@ -1,0 +1,46 @@
+model Event {
+    id        Int      @id @default(autoincrement())
+    name      String
+    is_active Boolean  @default(true)
+    
+    slots     EventSlot[]
+
+    @@map("events")
+}
+
+model EventSlot {
+    id            Int      @id @default(autoincrement())
+    date          DateTime
+    start_time    DateTime
+    end_time      DateTime
+    quota         Int
+    current_usage Int      @default(0)
+    
+    event_id      Int
+    event         Event    @relation(fields: [event_id], references: [id], onDelete: Cascade)
+    
+    usages        EventUsage[]
+
+    @@index([start_time])
+    @@index([end_time])
+    @@map("event_slots")
+}
+
+model EventUsage {
+    id              String   @id @default(uuid())
+    user_id         String   @unique
+    user            User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    
+    slot_id         Int
+    slot            EventSlot @relation(fields: [slot_id], references: [id], onDelete: Cascade)
+    
+    sequence_number Int
+    discount_amount Float
+    used_at         DateTime @default(now())
+    is_seen         Boolean  @default(false)
+
+    customer_discount_id String?           @unique
+    customer_discount    CustomerDiscount? @relation(fields: [customer_discount_id], references: [id], onDelete: SetNull)
+
+    @@map("event_usages")
+}

@@ -14,6 +14,6 @@ async function bootstrap() {
 
   // Aktifkan CORS agar aset bisa diakses dari aplikasi client/web
   app.enableCors();
-  await app.listen(process.env.PORT ?? 3002);
+  await app.listen(process.env.PORT ?? 3002, '0.0.0.0');
 }
 bootstrap();

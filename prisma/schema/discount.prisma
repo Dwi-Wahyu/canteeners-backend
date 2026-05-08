@@ -1,0 +1,73 @@
+model Discount {
+    id String @id @default(uuid())
+
+    name        String
+    description String? @db.Text
+    code        String? @unique
+
+    type        DiscountType // nominal fixed atau persentase
+    reward_type RewardType   @default(DISCOUNT) // tipe hadiah: Diskon langsung atau Cashback
+    value       Float
+
+    max_discount Float? // batas maksimal potongan untuk type PERCENTAGE
+    min_purchase Float? // syarat minimum belanja
+
+    start_date DateTime?
+    end_date   DateTime?
+    status     DiscountStatus @default(ACTIVE)
+
+    // Relasi untuk diskon toko tertentu (opsional)
+    shop_id String?
+    shop    Shop?   @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+
+    // Relasi untuk kategori tertentu (opsional)
+    category_id Int?
+    category    Category? @relation(fields: [category_id], references: [id], onDelete: Cascade)
+
+    order_discounts    OrderDiscount[] // relasi history penggunaan diskon pada order
+    customer_discounts CustomerDiscount[] // relasi ke customer yang memiliki diskon ini (voucher)
+
+    created_at DateTime @default(now())
+    updated_at DateTime @updatedAt
+
+    @@index([shop_id])
+    @@index([category_id])
+    @@index([code])
+    @@index([status])
+    @@map("discounts")
+}
+
+enum DiscountType {
+    PERCENTAGE
+    FIXED
+}
+
+enum RewardType {
+    DISCOUNT // Diskon memotong harga langsung
+    CASHBACK // Cashback berupa pengembalian saldo (tergantung implementasi bisnis)
+}
+
+enum DiscountStatus {
+    ACTIVE
+    INACTIVE
+}
+
+model CustomerDiscount {
+    id          String   @id @default(uuid())
+    customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+    customer_id String
+
+    discount    Discount @relation(fields: [discount_id], references: [id], onDelete: Cascade)
+    discount_id String
+
+    is_used     Boolean   @default(false)
+    is_seen     Boolean   @default(false)
+    used_at     DateTime?
+    acquired_at DateTime  @default(now())
+
+    event_usage EventUsage?
+
+    @@index([customer_id])
+    @@index([discount_id])
+    @@map("customer_discounts")
+}
