@@ -28,7 +28,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.prep.outputs.tag }}
+          tags: ghcr.io/dwi-wahyu/canteeners-backend:staging
 
   deploy:
     needs: build-and-push
@@ -48,13 +48,13 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             # Ganti dengan path folder root project Anda di server
-            cd /var/www/canteeners
+            cd /var/www/canteeners 
 
             # Pull image terbaru
-            docker pull ${{ steps.prep.outputs.tag }}
+            docker pull ghcr.io/dwi-wahyu/canteeners-backend:staging
 
             # Restart service backend saja
             docker-compose -f docker-compose.staging.yml up -d backend-staging
 
             # Jalankan migrasi prisma
-            docker exec canteeners-backend-staging npx prisma migrate deploy
+            docker exec canteeners-backend-staging bunx prisma migrate deploy
