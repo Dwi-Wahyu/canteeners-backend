@@ -22,7 +22,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:staging
+          tags: ghcr.io/dwi-wahyu/canteeners-backend:staging
 
   deploy:
     needs: build-and-push
@@ -36,13 +36,13 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             # Ganti dengan path folder root project Anda di server
-            cd ~/canteeners-source-code 
+            cd /var/www/canteeners 
 
             # Pull image terbaru
-            docker pull ghcr.io/${{ github.repository }}:staging
+            docker pull ghcr.io/dwi-wahyu/canteeners-backend:staging
 
             # Restart service backend saja
             docker-compose -f docker-compose.staging.yml up -d backend-staging
 
             # Jalankan migrasi prisma
-            docker exec canteeners-backend-staging npx prisma migrate deploy
+            docker exec canteeners-backend-staging bunx prisma migrate deploy
