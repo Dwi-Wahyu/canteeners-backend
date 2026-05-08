@@ -9,6 +9,6 @@ export default defineConfig({
     seed: 'bun run prisma/seed',
   },
   datasource: {
-    url: env('DATABASE_URL'),
+    url: env('DATABASE_URL') ?? process.env.DATABASE_URL,
   },
 });
