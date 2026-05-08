@@ -2,13 +2,19 @@ name: Build and Deploy Production (Backend)
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Prepare Image Tag
+        id: prep
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "tag=ghcr.io/${REPO_LOWER}:latest" >> $GITHUB_OUTPUT
 
       - name: Login to GHCR
         uses: docker/login-action@v2
@@ -22,12 +28,18 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ${{ steps.prep.outputs.tag }}
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      - name: Prepare Image Tag
+        id: prep
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "tag=ghcr.io/${REPO_LOWER}:latest" >> $GITHUB_OUTPUT
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -36,13 +48,13 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             # Ganti dengan path folder root project Anda di server
-            cd ~/canteeners-source-code 
-            
+            cd /var/www/canteeners
+
             # Pull image terbaru
-            docker pull ghcr.io/${{ github.repository }}:latest
-            
+            docker pull ${{ steps.prep.outputs.tag }}
+
             # Restart service backend production saja
             docker-compose up -d backend
-            
+
             # Jalankan migrasi prisma production
             docker exec canteeners-backend-prod npx prisma migrate deploy
