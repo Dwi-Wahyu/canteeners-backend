@@ -3,6 +3,7 @@ name: Build and Deploy Production (Backend)
 on:
   push:
     branches: [main]
+    branches: [main]
 
 jobs:
   build-and-push:
@@ -29,7 +30,6 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/dwi-wahyu/canteeners-backend:latest
-          tags: ghcr.io/dwi-wahyu/canteeners-backend:latest
 
   deploy:
     needs: build-and-push
@@ -51,16 +51,12 @@ jobs:
             # Ganti dengan path folder root project Anda di server
             cd /var/www/canteeners 
 
-            cd /var/www/canteeners 
-
             # Pull image terbaru
-            docker pull ghcr.io/dwi-wahyu/canteeners-backend:latest
-
             docker pull ghcr.io/dwi-wahyu/canteeners-backend:latest
 
             # Restart service backend production saja
             docker-compose up -d backend
 
+
             # Jalankan migrasi prisma production
-            docker exec canteeners-backend-prod bunx prisma migrate deploy
             docker exec canteeners-backend-prod bunx prisma migrate deploy
