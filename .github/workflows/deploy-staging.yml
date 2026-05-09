@@ -42,7 +42,7 @@ jobs:
             docker pull ghcr.io/dwi-wahyu/canteeners-backend:staging
 
             # Restart service backend saja
-            docker-compose -f docker-compose.staging.yml up -d backend-staging
+            docker compose -f docker-compose.staging.yml up -d backend-staging
 
             # Jalankan migrasi prisma
             docker exec canteeners-backend-staging bunx prisma migrate deploy
