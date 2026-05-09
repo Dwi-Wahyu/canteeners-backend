@@ -3,7 +3,6 @@ name: Build and Deploy Production (Backend)
 on:
   push:
     branches: [main]
-    branches: [main]
 
 jobs:
   build-and-push:
@@ -35,12 +34,6 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Prepare Image Tag
-        id: prep
-        run: |
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "tag=ghcr.io/${REPO_LOWER}:latest" >> $GITHUB_OUTPUT
-
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -56,7 +49,3 @@ jobs:
 
             # Restart service backend production saja
             docker compose up -d backend
-
-
-            # Jalankan migrasi prisma production
-            docker exec canteeners-backend-prod bunx prisma migrate deploy

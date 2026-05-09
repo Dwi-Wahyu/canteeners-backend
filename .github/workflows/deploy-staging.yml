@@ -34,12 +34,6 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Prepare Image Tag
-        id: prep
-        run: |
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "tag=ghcr.io/${REPO_LOWER}:staging" >> $GITHUB_OUTPUT
-
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -53,8 +47,5 @@ jobs:
             # Pull image terbaru
             docker pull ghcr.io/dwi-wahyu/canteeners-backend:staging
 
-            # Restart service backend saja
-            docker compose -f docker-compose.staging.yml up -d backend-staging
-
-            # Jalankan migrasi prisma
-            docker exec canteeners-backend-staging bunx prisma migrate deploy
+            # Restart service backend staging saja
+            docker compose -f docker-compose.staging.yml --env-file .env.staging up -d backend-staging
