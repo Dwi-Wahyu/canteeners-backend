@@ -43,6 +43,3 @@ jobs:
 
             # Restart service backend production saja
             docker compose up -d backend
-
-            # Jalankan migrasi prisma production
-            docker exec canteeners-backend-prod bunx prisma migrate deploy
