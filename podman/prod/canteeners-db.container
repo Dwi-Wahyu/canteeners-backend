@@ -7,7 +7,7 @@ ContainerName=canteeners-db-prod
 Image=postgres:15-alpine
 EnvironmentFile=/var/www/canteeners/.env/db.prod
 PublishPort=3003:5432
-Volume=production_postgres_data:/var/lib/postgresql/data
+Volume=canteeners-db-data.volume:/var/lib/postgresql/data
 Network=canteeners.network
 
 [Install]
