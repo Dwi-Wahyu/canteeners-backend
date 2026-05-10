@@ -1,0 +1,13 @@
+[Unit]
+Description=Canteeners Main App
+After=db.service
+
+[Container]
+ContainerName=canteeners-main-prod
+Image=ghcr.io/dwi-wahyu/canteeners-main:latest
+EnvironmentFile=/var/www/canteeners/.env/main.prod
+PublishPort=3000:3000
+Network=canteeners.network
+
+[Install]
+WantedBy=multi-user.target default.target

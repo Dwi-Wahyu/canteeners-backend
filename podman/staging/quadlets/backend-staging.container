@@ -1,0 +1,14 @@
+[Unit]
+Description=Canteeners Staging Backend
+After=db-staging.service redis-staging.service
+
+[Container]
+ContainerName=canteeners-backend-staging
+Image=ghcr.io/dwi-wahyu/canteeners-backend:staging
+Environment=DATABASE_URL=postgresql://canteeners_staging:canteeners_staging123@canteeners-db-staging:5432/canteeners_staging?schema=public PORT=3002 HOST=0.0.0.0 REDIS_HOST=canteeners-redis-staging REDIS_PORT=6379 NODE_ENV=staging
+PublishPort=4002:3002
+Volume=%h/Personal/Projects/Canteeners/source-code/canteeners-backend-staging/uploads:/app/uploads
+Network=canteeners-staging.network
+
+[Install]
+WantedBy=multi-user.target default.target

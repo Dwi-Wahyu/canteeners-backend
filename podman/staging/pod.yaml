@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: canteeners-staging-pod
+spec:
+  containers:
+  - name: db-staging
+    image: postgres:15-alpine
+    env:
+    - name: POSTGRES_USER
+      value: canteeners_staging
+    - name: POSTGRES_PASSWORD
+      value: canteeners_staging123
+    - name: POSTGRES_DB
+      value: canteeners_staging
+    ports:
+    - containerPort: 5432
+      hostPort: 4003
+    volumeMounts:
+    - mountPath: /var/lib/postgresql/data
+      name: staging-db-data
+  - name: redis-staging
+    image: redis:alpine
+    ports:
+    - containerPort: 6379
+      hostPort: 4004
+  - name: backend-staging
+    image: ghcr.io/dwi-wahyu/canteeners-backend:staging
+    env:
+    - name: DATABASE_URL
+      value: "postgresql://canteeners_staging:canteeners_staging123@localhost:5432/canteeners_staging?schema=public"
+    - name: PORT
+      value: "3002"
+    - name: HOST
+      value: 0.0.0.0
+    - name: REDIS_HOST
+      value: localhost
+    - name: REDIS_PORT
+      value: "6379"
+    - name: NODE_ENV
+      value: staging
+    ports:
+    - containerPort: 3002
+      hostPort: 4002
+    volumeMounts:
+    - mountPath: /app/uploads
+      name: staging-backend-uploads
+  - name: admin-staging
+    image: ghcr.io/dwi-wahyu/canteeners-admin:staging
+    env:
+    - name: DATABASE_URL
+      value: "postgresql://canteeners_staging:canteeners_staging123@localhost:5432/canteeners_staging?schema=public"
+    - name: NODE_ENV
+      value: staging
+    - name: PORT
+      value: "3001"
+    ports:
+    - containerPort: 3001
+      hostPort: 4001
+  - name: main-staging
+    image: ghcr.io/dwi-wahyu/canteeners-main:staging
+    env:
+    - name: DATABASE_URL
+      value: "postgresql://canteeners_staging:canteeners_staging123@localhost:5432/canteeners_staging?schema=public"
+    - name: NODE_ENV
+      value: staging
+    - name: PORT
+      value: "3000"
+    ports:
+    - containerPort: 3000
+      hostPort: 4000
+  volumes:
+  - name: staging-db-data
+    hostPath:
+      path: ./staging_postgres_data
+      type: DirectoryOrCreate
+  - name: staging-backend-uploads
+    hostPath:
+      path: ./canteeners-backend-staging/uploads
+      type: DirectoryOrCreate

@@ -1,0 +1,13 @@
+[Unit]
+Description=Canteeners Staging Admin Panel
+After=db-staging.service
+
+[Container]
+ContainerName=canteeners-admin-staging
+Image=ghcr.io/dwi-wahyu/canteeners-admin:staging
+Environment=DATABASE_URL=postgresql://canteeners_staging:canteeners_staging123@canteeners-db-staging:5432/canteeners_staging?schema=public NODE_ENV=staging PORT=3001
+PublishPort=4001:3001
+Network=canteeners-staging.network
+
+[Install]
+WantedBy=multi-user.target default.target
