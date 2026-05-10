@@ -1,0 +1,14 @@
+[Unit]
+Description=Canteeners Staging Database
+After=network-online.target
+
+[Container]
+ContainerName=canteeners-db-staging
+Image=postgres:15-alpine
+Environment=POSTGRES_USER=canteeners_staging POSTGRES_PASSWORD=canteeners_staging123 POSTGRES_DB=canteeners_staging
+PublishPort=4003:5432
+Volume=staging_postgres_data:/var/lib/postgresql/data
+Network=canteeners-staging.network
+
+[Install]
+WantedBy=multi-user.target default.target

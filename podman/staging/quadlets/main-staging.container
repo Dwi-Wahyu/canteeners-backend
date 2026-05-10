@@ -1,0 +1,13 @@
+[Unit]
+Description=Canteeners Staging Main App
+After=db-staging.service
+
+[Container]
+ContainerName=canteeners-main-staging
+Image=ghcr.io/dwi-wahyu/canteeners-main:staging
+Environment=DATABASE_URL=postgresql://canteeners_staging:canteeners_staging123@canteeners-db-staging:5432/canteeners_staging?schema=public NODE_ENV=staging PORT=3000
+PublishPort=4000:3000
+Network=canteeners-staging.network
+
+[Install]
+WantedBy=multi-user.target default.target

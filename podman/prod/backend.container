@@ -1,0 +1,14 @@
+[Unit]
+Description=Canteeners Backend
+After=db.service redis.service
+
+[Container]
+ContainerName=canteeners-backend-prod
+Image=ghcr.io/dwi-wahyu/canteeners-backend:latest
+EnvironmentFile=/var/www/canteeners/.env/backend.prod
+PublishPort=3002:3001
+Volume=%h/Personal/Projects/Canteeners/source-code/canteeners-backend/uploads:/app/uploads
+Network=canteeners.network
+
+[Install]
+WantedBy=multi-user.target default.target

@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: canteeners-pod
+spec:
+  containers:
+  - name: db
+    image: postgres:15-alpine
+    env:
+    - name: POSTGRES_USER
+      value: postgres
+    - name: POSTGRES_PASSWORD
+      value: postgres
+    - name: POSTGRES_DB
+      value: canteeners_prod
+    ports:
+    - containerPort: 5432
+      hostPort: 3003
+    volumeMounts:
+    - mountPath: /var/lib/postgresql/data
+      name: db-data
+  - name: redis
+    image: redis:alpine
+    ports:
+    - containerPort: 6379
+      hostPort: 3004
+  - name: backend
+    image: ghcr.io/dwi-wahyu/canteeners-backend:latest
+    env:
+    - name: DATABASE_URL
+      value: "postgresql://postgres:postgres@localhost:5432/canteeners_prod?schema=public"
+    - name: PORT
+      value: "3002" # Changed to 3002 to avoid conflict with admin
+    - name: HOST
+      value: 0.0.0.0
+    - name: REDIS_HOST
+      value: localhost
+    - name: REDIS_PORT
+      value: "6379"
+    ports:
+    - containerPort: 3002
+      hostPort: 3002
+    volumeMounts:
+    - mountPath: /app/uploads
+      name: backend-uploads
+  - name: admin
+    image: ghcr.io/dwi-wahyu/canteeners-admin:latest
+    env:
+    - name: DATABASE_URL
+      value: "postgresql://postgres:postgres@localhost:5432/canteeners_prod?schema=public"
+    - name: NODE_ENV
+      value: production
+    - name: PORT
+      value: "3001"
+    ports:
+    - containerPort: 3001
+      hostPort: 3001
+  - name: main
+    image: ghcr.io/dwi-wahyu/canteeners-main:latest
+    env:
+    - name: DATABASE_URL
+      value: "postgresql://postgres:postgres@localhost:5432/canteeners_prod?schema=public"
+    - name: NODE_ENV
+      value: production
+    - name: PORT
+      value: "3000"
+    ports:
+    - containerPort: 3000
+      hostPort: 3000
+  volumes:
+  - name: db-data
+    hostPath:
+      path: ./production_postgres_data
+      type: DirectoryOrCreate
+  - name: backend-uploads
+    hostPath:
+      path: ./canteeners-backend/uploads
+      type: DirectoryOrCreate

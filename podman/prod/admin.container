@@ -1,0 +1,13 @@
+[Unit]
+Description=Canteeners Admin Panel
+After=db.service
+
+[Container]
+ContainerName=canteeners-admin-prod
+Image=ghcr.io/dwi-wahyu/canteeners-admin:latest
+EnvironmentFile=/var/www/canteeners/.env/admin.prod
+PublishPort=3001:3001
+Network=canteeners.network
+
+[Install]
+WantedBy=multi-user.target default.target
