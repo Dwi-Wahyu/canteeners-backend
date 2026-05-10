@@ -48,4 +48,4 @@ jobs:
             podman pull ghcr.io/dwi-wahyu/canteeners-backend:latest
 
             # Restart service backend production menggunakan native systemd (Quadlets)
-            systemctl --user restart backend.service
+            systemctl --user restart canteeners-backend.service
