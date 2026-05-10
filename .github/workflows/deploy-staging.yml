@@ -44,8 +44,8 @@ jobs:
             # Ganti dengan path folder root project Anda di server
             cd /var/www/canteeners 
 
-            # Pull image terbaru
-            docker pull ghcr.io/dwi-wahyu/canteeners-backend:staging
+            # Pull image terbaru menggunakan Podman
+            podman pull ghcr.io/dwi-wahyu/canteeners-backend:staging
 
-            # Restart service backend staging saja
-            docker compose -f docker-compose.staging.yml --env-file .env.staging up -d backend-staging
+            # Restart Staging Pod menggunakan native kube play
+            podman kube play podman/staging/pod.yaml

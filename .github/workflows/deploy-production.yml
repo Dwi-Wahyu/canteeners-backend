@@ -44,8 +44,8 @@ jobs:
             # Ganti dengan path folder root project Anda di server
             cd /var/www/canteeners 
 
-            # Pull image terbaru
-            docker pull ghcr.io/dwi-wahyu/canteeners-backend:latest
+            # Pull image terbaru menggunakan Podman
+            podman pull ghcr.io/dwi-wahyu/canteeners-backend:latest
 
-            # Restart service backend production saja
-            docker compose up -d backend
+            # Restart service backend production menggunakan native systemd (Quadlets)
+            systemctl --user restart backend.service
