@@ -10,6 +10,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Prepare Image Tag
+        id: prep
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "tag=ghcr.io/${REPO_LOWER}:staging" >> $GITHUB_OUTPUT
+
       - name: Login to GHCR
         uses: docker/login-action@v2
         with:
@@ -38,11 +44,8 @@ jobs:
             # Ganti dengan path folder root project Anda di server
             cd /var/www/canteeners 
 
-            # Pull image terbaru
-            docker pull ghcr.io/dwi-wahyu/canteeners-backend:staging
+            # Pull image terbaru menggunakan Podman
+            podman pull ghcr.io/dwi-wahyu/canteeners-backend:staging
 
-            # Restart service backend saja
-            docker compose -f docker-compose.staging.yml up -d backend-staging
-
-            # Jalankan migrasi prisma
-            docker exec canteeners-backend-staging bunx prisma migrate deploy
+            # Restart Staging Pod menggunakan native kube play
+            podman kube play podman/staging/pod.yaml

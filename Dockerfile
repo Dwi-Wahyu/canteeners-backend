@@ -63,11 +63,11 @@ COPY --from=builder /app/prisma ./prisma
 # If your DB is on the host, use 'host.docker.internal' (Mac/Windows) 
 # or the host's IP address (Linux).
 ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/canteeners?schema=public"
-ENV PORT=3001
+ENV PORT=3002
 ENV HOST=0.0.0.0
 
 # Expose the application port
-EXPOSE 3001
+EXPOSE 3002
 
 # Start the application using the production script
 CMD ["npm", "run", "start:prod"]
