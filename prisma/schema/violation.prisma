@@ -28,6 +28,8 @@ model UserReport {
 
 enum CustomerViolationType {
   ORDER_CANCEL_WITHOUT_PAY
+  REFUND_FRAUD
+  REVIEW_VIOLATION
 }
 
 enum ReportStatus {
