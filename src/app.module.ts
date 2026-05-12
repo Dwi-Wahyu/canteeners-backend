@@ -4,6 +4,12 @@ import { AppService } from './app.service';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { FileManagerModule } from './file-manager/file-manager.module';
+import { BullModule } from '@nestjs/bullmq';
+import { PrismaModule } from './prisma/prisma.module';
+import { OrderModule } from './order/order.module';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { ExpressAdapter } from '@bull-board/express';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 
 @Module({
   imports: [
@@ -15,7 +21,23 @@ import { FileManagerModule } from './file-manager/file-manager.module';
       // Prefix URL untuk mengakses file
       serveRoot: '/uploads',
     }),
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+      },
+    }),
+    BullBoardModule.forRoot({
+      route: '/admin/queues',
+      adapter: ExpressAdapter,
+    }),
+    BullBoardModule.forFeature({
+      name: 'order-queue',
+      adapter: BullMQAdapter,
+    }),
+    PrismaModule,
     FileManagerModule,
+    OrderModule,
   ],
 
   controllers: [AppController],

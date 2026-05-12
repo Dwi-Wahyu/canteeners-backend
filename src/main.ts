@@ -9,7 +9,7 @@ async function bootstrap() {
   const uploadDir = join(process.cwd(), 'uploads');
   if (!existsSync(uploadDir)) {
     mkdirSync(uploadDir);
-    console.log('📁 Folder uploads berhasil dibuat');
+    console.log('Folder uploads berhasil dibuat');
   }
 
   // Aktifkan CORS agar aset bisa diakses dari aplikasi client/web

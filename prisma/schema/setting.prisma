@@ -1,0 +1,10 @@
+// canteeners-admin/prisma/schema/setting.prisma
+
+model GlobalSetting {
+  key   String @id
+  value String
+
+  updated_at DateTime @updatedAt
+
+  @@map("global_settings")
+}
