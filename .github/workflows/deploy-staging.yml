@@ -48,4 +48,5 @@ jobs:
             podman pull ghcr.io/dwi-wahyu/canteeners-backend:staging
 
             # Restart Staging Pod menggunakan native kube play
-            podman kube play podman/staging/pod.yaml
+            podman kube down /var/www/canteeners/podman/staging/pod.yaml
+            podman kube play /var/www/canteeners/podman/staging/pod.yaml
