@@ -32,7 +32,7 @@ COPY prisma.config.ts ./
 
 # Generate Prisma Client
 # The output is configured in schema.prisma to go to src/generated/prisma
-RUN npx prisma generate
+RUN npx prisma generate --schema ./prisma/schema
 
 # Copy the rest of the application source code
 COPY . .
