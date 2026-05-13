@@ -10,6 +10,7 @@ import { OrderModule } from './order/order.module';
 import { BullBoardModule } from '@bull-board/nestjs';
 import { ExpressAdapter } from '@bull-board/express';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
       adapter: BullMQAdapter,
     }),
     PrismaModule,
+    FirebaseModule,
     FileManagerModule,
     OrderModule,
   ],

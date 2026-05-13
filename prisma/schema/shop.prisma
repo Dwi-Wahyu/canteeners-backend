@@ -93,6 +93,7 @@ enum ShopOrderMode {
 
 enum ShopStatus {
     ACTIVE
+    BUSY
     INACTIVE
     SUSPENDED
 }
