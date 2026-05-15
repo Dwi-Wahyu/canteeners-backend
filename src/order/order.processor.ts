@@ -84,7 +84,7 @@ export class OrderProcessor extends WorkerHost {
           data: {
             order_id: orderId,
             amount: order.total_price,
-            reason: 'OTHER',
+            reason: 'SHOP_CANCELLATION',
             status: 'PENDING',
             description:
               'Pemilik kedai tidak mengonfirmasi pembayaran dalam batas waktu 30 menit. Pesanan dibatalkan otomatis dan pengembalian dana sedang diverifikasi. Silakan hubungi layanan pelanggan jika Anda memiliki pertanyaan.',
