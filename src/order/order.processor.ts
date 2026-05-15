@@ -138,7 +138,8 @@ export class OrderProcessor extends WorkerHost {
         where: { id: orderId },
         data: {
           status: 'CANCELLED',
-          cancelled_reason: 'Melewati batas waktu pembayaran 15 menit',
+          cancelled_reason:
+            'Batas waktu pembayaran berakhir, pesanan dibatalkan otomatis oleh sistem dan tercatat sebagai pelanggaran.',
           cancelled_by_id: 'SYSTEM',
         },
       });
