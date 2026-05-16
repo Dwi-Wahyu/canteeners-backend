@@ -11,6 +11,7 @@ import { BullBoardModule } from '@bull-board/nestjs';
 import { ExpressAdapter } from '@bull-board/express';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { FirebaseModule } from './firebase/firebase.module';
+import { RefundModule } from './refund/refund.module';
 
 @Module({
   imports: [
@@ -36,10 +37,15 @@ import { FirebaseModule } from './firebase/firebase.module';
       name: 'order-queue',
       adapter: BullMQAdapter,
     }),
+    BullBoardModule.forFeature({
+      name: 'refund-queue',
+      adapter: BullMQAdapter,
+    }),
     PrismaModule,
     FirebaseModule,
     FileManagerModule,
     OrderModule,
+    RefundModule,
   ],
 
   controllers: [AppController],
