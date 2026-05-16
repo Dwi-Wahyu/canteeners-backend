@@ -22,6 +22,9 @@ export class FileManagerController {
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('file', {
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB
+      },
       storage: diskStorage({
         // Fungsi destination sekarang bisa membaca data dari 'req.body'
         destination: (req, file, callback) => {
