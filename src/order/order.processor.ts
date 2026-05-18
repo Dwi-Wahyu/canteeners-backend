@@ -117,7 +117,7 @@ export class OrderProcessor extends WorkerHost {
     // KONDISI PENGAMAN: Cek status order saat ini.
     // 1. Status WAITING_PAYMENT (untuk non-CASH)
     // 2. Status WAITING_SHOP_CONFIRMATION dengan method CASH (karena belum bayar di kedai)
-    const isWaitingNonCash = order.status === 'WAITING_PAYMENT';
+    const isWaitingNonCash = order.status === 'WAITING_PAYMENT' || order.status === 'PAYMENT_REJECTED';
     const isWaitingCash =
       order.status === 'WAITING_SHOP_CONFIRMATION' &&
       order.payment_method === 'CASH' &&

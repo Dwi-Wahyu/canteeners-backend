@@ -39,6 +39,8 @@ model Order {
 
   order_items OrderItem[]
 
+  payment_histories OrderPaymentHistory[]
+
   post_order_type PostOrderType @default(DELIVERY_TO_TABLE)
   table_number    Int?
   floor           Int?
@@ -112,4 +114,16 @@ enum PostOrderType {
   DELIVERY_TO_TABLE
   TAKEAWAY
   COURIER_DELIVERY
+}
+
+model OrderPaymentHistory {
+  id                String   @id @default(uuid())
+  order             Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id          String
+  payment_proof_url String
+  rejected_reason   String?
+  created_at        DateTime @default(now())
+
+  @@index([order_id])
+  @@map("order_payment_histories")
 }
