@@ -35,6 +35,7 @@ model Shop {
 
     shop_carts ShopCart[]
     specializations ShopCategory[]
+    violations ShopViolation[]
 
     @@index([canteen_id])
     @@index([name])

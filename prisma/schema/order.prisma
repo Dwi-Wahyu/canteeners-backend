@@ -29,6 +29,7 @@ model Order {
   testimony ShopTestimony?
   complaint ShopComplaint?
   refund    Refund?
+  shop_violations ShopViolation[]
 
   referral_code_used String? // Kode referral yang digunakan pelanggan saat order ini dibuat
 
