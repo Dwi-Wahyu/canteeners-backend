@@ -28,43 +28,43 @@ export class OrderProcessor extends WorkerHost {
     const { orderId } = job.data;
     this.logger.log(`Checking order ${orderId} for automatic refund...`);
 
-    const order = await this.prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        shop: {
-          include: {
-            owner: true,
+    const result = await this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          shop: {
+            include: {
+              owner: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    if (!order) {
-      this.logger.error(`Order ${orderId} not found`);
-      return;
-    }
+      if (!order) {
+        this.logger.error(`Order ${orderId} not found`);
+        return null;
+      }
 
-    // Hanya proses jika status masih WAITING_SHOP_CONFIRMATION
-    if (order.status !== 'WAITING_SHOP_CONFIRMATION') {
+      // Hanya proses jika status masih WAITING_SHOP_CONFIRMATION
+      if (order.status !== 'WAITING_SHOP_CONFIRMATION') {
+        this.logger.log(
+          `Order ${orderId} status is ${order.status}. Skipping auto-refund.`,
+        );
+        return null;
+      }
+
+      // Pastikan ada bukti pembayaran (untuk transfer) atau memang CASH yang butuh konfirmasi
+      if (order.payment_method !== 'CASH' && !order.payment_proof_url) {
+        this.logger.log(
+          `Order ${orderId} has no payment proof for non-cash method. Skipping auto-refund.`,
+        );
+        return null;
+      }
+
       this.logger.log(
-        `Order ${orderId} status is ${order.status}. Skipping auto-refund.`,
+        `Order ${orderId} was not confirmed by shop in 30 minutes. Cancelling and creating refund...`,
       );
-      return;
-    }
 
-    // Pastikan ada bukti pembayaran (untuk transfer) atau memang CASH yang butuh konfirmasi
-    if (order.payment_method !== 'CASH' && !order.payment_proof_url) {
-      this.logger.log(
-        `Order ${orderId} has no payment proof for non-cash method. Skipping auto-refund.`,
-      );
-      return;
-    }
-
-    this.logger.log(
-      `Order ${orderId} was not confirmed by shop in 30 minutes. Cancelling and creating refund...`,
-    );
-
-    await this.prisma.$transaction(async (tx) => {
       // 1. Update status order
       await tx.order.update({
         where: { id: orderId },
@@ -77,8 +77,6 @@ export class OrderProcessor extends WorkerHost {
       });
 
       // 2. Buat record refund (hanya jika non-CASH atau ada bukti pembayaran)
-      // Note: Jika CASH dan belum bayar (no proof), biasanya dicancel tanpa refund.
-      // Tapi request user bilang "seluruh total harga keranjang", asumsikan ini untuk yang sudah bayar.
       if (order.payment_proof_url || order.payment_method !== 'CASH') {
         await tx.refund.create({
           data: {
@@ -94,45 +92,51 @@ export class OrderProcessor extends WorkerHost {
         });
         this.logger.log(`Refund record created for order ${orderId}.`);
       }
+      return order;
     });
 
-    this.logger.log(
-      `Order ${orderId} has been successfully cancelled and refund initiated.`,
-    );
+    if (result) {
+      this.logger.log(
+        `Order ${orderId} has been successfully cancelled and refund initiated.`,
+      );
+    }
+    return result;
   }
 
   private async handleCancelUnpaidOrder(job: Job<any>) {
     const { orderId } = job.data;
     this.logger.log(`Checking order ${orderId} for automatic cancellation...`);
 
-    const order = await this.prisma.order.findUnique({
-      where: { id: orderId },
-    });
+    const result = await this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+      });
 
-    if (!order) {
-      this.logger.error(`Order ${orderId} not found`);
-      return;
-    }
+      if (!order) {
+        this.logger.error(`Order ${orderId} not found`);
+        return null;
+      }
 
-    // KONDISI PENGAMAN: Cek status order saat ini.
-    // 1. Status WAITING_PAYMENT (untuk non-CASH)
-    // 2. Status WAITING_SHOP_CONFIRMATION dengan method CASH (karena belum bayar di kedai)
-    const isWaitingNonCash = order.status === 'WAITING_PAYMENT' || order.status === 'PAYMENT_REJECTED';
-    const isWaitingCash =
-      order.status === 'WAITING_SHOP_CONFIRMATION' &&
-      order.payment_method === 'CASH' &&
-      !order.payment_proof_url;
+      // KONDISI PENGAMAN: Cek status order saat ini.
+      // 1. Status WAITING_PAYMENT (untuk non-CASH)
+      // 2. Status WAITING_SHOP_CONFIRMATION dengan method CASH (karena belum bayar di kedai)
+      const isWaitingNonCash =
+        order.status === 'WAITING_PAYMENT' ||
+        order.status === 'PAYMENT_REJECTED';
+      const isWaitingCash =
+        order.status === 'WAITING_SHOP_CONFIRMATION' &&
+        order.payment_method === 'CASH' &&
+        !order.payment_proof_url;
 
-    if (!isWaitingNonCash && !isWaitingCash) {
-      this.logger.log(
-        `Order ${orderId} is safe (status: ${order.status}, method: ${order.payment_method}). Skipping cancellation.`,
-      );
-      return;
-    }
+      if (!isWaitingNonCash && !isWaitingCash) {
+        this.logger.log(
+          `Order ${orderId} is safe (status: ${order.status}, method: ${order.payment_method}). Skipping cancellation.`,
+        );
+        return null;
+      }
 
-    this.logger.log(`Order ${orderId} is still unpaid. Cancelling...`);
+      this.logger.log(`Order ${orderId} is still unpaid. Cancelling...`);
 
-    const updatedOrder = await this.prisma.$transaction(async (tx) => {
       // 1. Update status order
       const updated = await tx.order.update({
         where: { id: orderId },
@@ -186,7 +190,9 @@ export class OrderProcessor extends WorkerHost {
       return updated;
     });
 
-    this.logger.log(`Order ${orderId} has been successfully cancelled.`);
-    return updatedOrder;
+    if (result) {
+      this.logger.log(`Order ${orderId} has been successfully cancelled.`);
+    }
+    return result;
   }
 }
