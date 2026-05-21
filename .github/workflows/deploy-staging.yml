@@ -6,15 +6,13 @@ on:
 
 jobs:
   build-and-push:
+    permissions:
+      contents: read
+      packages: write
     runs-on: ubuntu-latest
+    environment: Staging
     steps:
       - uses: actions/checkout@v3
-
-      - name: Prepare Image Tag
-        id: prep
-        run: |
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "tag=ghcr.io/${REPO_LOWER}:staging" >> $GITHUB_OUTPUT
 
       - name: Login to GHCR
         uses: docker/login-action@v2
@@ -27,12 +25,15 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
+          cache-from: type=registry,ref=ghcr.io/dwi-wahyu/canteeners-backend:cache-staging
+          cache-to: type=registry,ref=ghcr.io/dwi-wahyu/canteeners-backend:cache-staging,mode=max
           push: true
           tags: ghcr.io/dwi-wahyu/canteeners-backend:staging
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    environment: Staging
     steps:
       - name: Deploy via SSH
         timeout-minutes: 20
@@ -45,6 +46,10 @@ jobs:
           timeout: 20m
           command_timeout: 15m
           script: |
+            export XDG_RUNTIME_DIR=/run/user/$(id -u)
+
+            podman login ghcr.io -u dwi-wahyu -p ${{ secrets.GHCR_TOKEN }}
+
             # Ganti dengan path folder root project Anda di server
             cd /var/www/canteeners 
 
