@@ -84,6 +84,9 @@ ecosystem.config.js
 /uploads/complaint-proof/*
 !/uploads/complaint-proof/.gitkeep
 
+/uploads/refund-proof/*
+!/uploads/refund-proof/.gitkeep
+
 /uploads/banners/*
 !/uploads/banners/.gitkeep
 
