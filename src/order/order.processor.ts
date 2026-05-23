@@ -19,6 +19,8 @@ export class OrderProcessor extends WorkerHost {
         return await this.handleCancelUnpaidOrder(job);
       case 'auto-refund-unconfirmed-payment':
         return await this.handleAutoRefundUnconfirmedPayment(job);
+      case 'auto-reject-unconfirmed-order':
+        return await this.handleAutoRejectUnconfirmedOrder(job);
       default:
         this.logger.warn(`Unknown job name: ${job.name}`);
     }
@@ -98,6 +100,55 @@ export class OrderProcessor extends WorkerHost {
     if (result) {
       this.logger.log(
         `Order ${orderId} has been successfully cancelled and refund initiated.`,
+      );
+    }
+    return result;
+  }
+
+  private async handleAutoRejectUnconfirmedOrder(job: Job<any>) {
+    const { orderId } = job.data;
+    this.logger.log(
+      `Checking order ${orderId} for automatic rejection due to shop inaction...`,
+    );
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+      });
+
+      if (!order) {
+        this.logger.error(`Order ${orderId} not found`);
+        return null;
+      }
+
+      // Hanya proses jika status masih PENDING_CONFIRMATION
+      if (order.status !== 'PENDING_CONFIRMATION') {
+        this.logger.log(
+          `Order ${orderId} status is ${order.status}. Skipping auto-rejection.`,
+        );
+        return null;
+      }
+
+      this.logger.log(
+        `Order ${orderId} was not confirmed by shop. Rejecting automatically...`,
+      );
+
+      // 1. Update status order
+      const updated = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: 'REJECTED',
+          rejected_reason:
+            'Pesanan ditolak otomatis oleh sistem karena kedai tidak merespons pesanan tepat waktu.',
+        },
+      });
+
+      return updated;
+    });
+
+    if (result) {
+      this.logger.log(
+        `Order ${orderId} has been successfully rejected due to shop inaction.`,
       );
     }
     return result;
