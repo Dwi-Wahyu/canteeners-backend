@@ -53,14 +53,21 @@ jobs:
           script: |
             export XDG_RUNTIME_DIR=/run/user/$(id -u)
 
+            # Cek disk dulu — batalkan jika > 80%
+            USAGE=$(df / | awk 'NR==2 {print $5}' | tr -d '%')
+            if [ "$USAGE" -gt 80 ]; then
+              echo "❌ Disk usage ${USAGE}% — bersihkan dulu"
+              podman image prune -f
+            fi
+
             podman login ghcr.io -u dwi-wahyu -p ${{ secrets.GHCR_TOKEN }}
 
-            # Ganti dengan path folder root project Anda di server
-            cd /var/www/canteeners 
-
             # Pull image terbaru menggunakan Podman
-            podman pull ghcr.io/dwi-wahyu/canteeners-backend:staging
+            podman pull ghcr.io/dwi-wahyu/canteeners-backend:staging || exit 1
 
             # Restart Staging Pod menggunakan native kube play
             podman kube down /var/www/canteeners/podman/staging/pod.yaml
             podman kube play /var/www/canteeners/podman/staging/pod.yaml
+
+            # Bersihkan image lama setelah deploy sukses
+            podman image prune -f
