@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import * as admin from 'firebase-admin';
-import { Firestore } from 'firebase-admin/firestore';
-import { Messaging } from 'firebase-admin/messaging';
+import { initializeApp, cert, getApps, getApp } from 'firebase-admin/app';
+import { getFirestore, Firestore } from 'firebase-admin/firestore';
+import { getMessaging, Messaging } from 'firebase-admin/messaging';
 
 @Injectable()
 export class FirebaseService implements OnModuleInit {
@@ -18,18 +18,21 @@ export class FirebaseService implements OnModuleInit {
       return;
     }
 
-    if (admin.apps.length === 0) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
+    let app;
+    if (getApps().length === 0) {
+      app = initializeApp({
+        credential: cert({
           projectId,
           clientEmail,
           privateKey: privateKey.replace(/\\n/g, '\n'),
         }),
       });
+    } else {
+      app = getApp();
     }
 
-    this.db = admin.firestore();
-    this.messaging = admin.messaging();
+    this.db = getFirestore(app);
+    this.messaging = getMessaging(app);
   }
 
   getDb(): Firestore {
