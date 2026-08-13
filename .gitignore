@@ -87,6 +87,10 @@ ecosystem.config.js
 /uploads/banners/*
 !/uploads/banners/.gitkeep
 
+/uploads/refund-proof/*
+!/uploads/refund-proof/.gitkeep
+
+
 /uploads/shop/*
 !/uploads/shop/.gitkeep
 !/uploads/shop/kedai-subarjo.webp
@@ -114,3 +118,5 @@ ecosystem.config.js
 
 /uploads/testimony/*
 !/uploads/testimony/.gitkeep
+
+ecosystem.config.cjs
