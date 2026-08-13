@@ -3,68 +3,54 @@ import {
   Post,
   Delete,
   Param,
-  UseInterceptors,
   UploadedFile,
   ParseFilePipe,
   MaxFileSizeValidator,
   Body,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { FileManagerService } from './file-manager.service';
-import { diskStorage } from 'multer';
 import { extname, join } from 'node:path';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, createWriteStream } from 'node:fs';
+import { pipeline } from 'node:stream/promises';
+import { promises as fs } from 'node:fs';
+import type { MultipartFile } from '@fastify/multipart';
 
 @Controller('files')
 export class FileManagerController {
   constructor(private readonly fileManagerService: FileManagerService) {}
 
   @Post('upload')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        // Fungsi destination sekarang bisa membaca data dari 'req.body'
-        destination: (req, file, callback) => {
-          // Ambil path dari body, default ke root 'uploads' jika kosong
-          const subPath = req.body.path || '';
-          const uploadPath = join(process.cwd(), 'uploads', subPath);
-
-          // Buat folder secara rekursif jika belum ada
-          if (!existsSync(uploadPath)) {
-            mkdirSync(uploadPath, { recursive: true });
-          }
-
-          callback(null, uploadPath);
-        },
-        filename: (req, file, callback) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const fileExt = extname(file.originalname);
-          callback(null, `file-${uniqueSuffix}${fileExt}`);
-        },
-      }),
-    }),
-  )
-  uploadFile(
+  async uploadFile(
     @UploadedFile(
       new ParseFilePipe({
         validators: [new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 })],
       }),
     )
-    file: Express.Multer.File,
+    file: MultipartFile, // ✅ bukan any lagi
     @Body('path') subPath: string,
   ) {
-    // Bersihkan path untuk response agar tidak ada double slash
-    const cleanSubPath = subPath ? `${subPath}/` : '';
+    const uploadPath = join(process.cwd(), 'uploads', subPath || '');
+    if (!existsSync(uploadPath)) {
+      mkdirSync(uploadPath, { recursive: true });
+    }
 
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const fileExt = extname(file.filename);
+    const fileName = `file-${uniqueSuffix}${fileExt}`;
+    const fullPath = join(uploadPath, fileName);
+
+    await pipeline(file.file, createWriteStream(fullPath));
+
+    const stats = await fs.stat(fullPath);
+
+    const cleanSubPath = subPath ? `${subPath}/` : '';
     return {
       message: 'Upload berhasil',
       data: {
-        filename: file.filename,
-        // Path akses publik
-        url: `/uploads/${cleanSubPath}${file.filename}`,
+        filename: fileName,
+        url: `/uploads/${cleanSubPath}${fileName}`,
         mimetype: file.mimetype,
-        size: file.size,
+        size: stats.size,
       },
     };
   }
