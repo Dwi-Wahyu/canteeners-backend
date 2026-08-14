@@ -1,110 +1,124 @@
 model User {
-    id String @id @default(uuid()) // jika role customer atau owner maka isi ini berupa firebase auth Uid
+  id String @id @default(uuid())
 
-    role Role
+  role Role
 
-    name     String
-    username String? @unique
-    password String?
-    avatar   String  @default("avatars/default-avatar.jpg")
+  name     String
+  username String? @unique
+  password String?
+  avatar   String  @default("avatars/default-avatar.jpg")
 
-    quick_chats QuickChat[]
+  quick_chats QuickChat[]
 
-    admin    Admin?
-    customer Customer?
-    owner    Owner?
+  admin    Admin?
+  customer Customer?
+  owner    Owner?
 
-    created_at DateTime  @default(now())
-    updated_at DateTime  @updatedAt
-    last_login DateTime?
+  chats_as_participant_one Chat[] @relation("ChatAsParticipantOne")
+  chats_as_participant_two Chat[] @relation("ChatAsParticipantTwo")
 
-    sent_reports     UserReport[] @relation("SentReports")
-    received_reports UserReport[] @relation("ReceivedReports")
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  last_login DateTime?
 
-    fcm_tokens UserFcmToken[]
+  sent_reports     UserReport[] @relation("SentReports")
+  received_reports UserReport[] @relation("ReceivedReports")
 
-    @@index([last_login])
-    @@index([role])
-    @@map("users")
+  fcm_tokens UserFcmToken[]
+
+  event_usage EventUsage?
+
+  @@index([last_login])
+  @@index([role])
+  @@map("users")
 }
 
 model UserFcmToken {
-    id      String @id @default(uuid())
-    user_id String
-    token   String @unique
+  id      String @id @default(uuid())
+  user_id String
+  token   String @unique
 
-    platform FcmPlatform // WEB, ANDROID, IOS
-    browser  String? // chrome, firefox, safari
+  platform FcmPlatform // WEB, ANDROID, IOS
+  browser  String? // chrome, firefox, safari
 
-    is_active    Boolean   @default(true)
-    last_used_at DateTime?
-    created_at   DateTime  @default(now())
-    updated_at   DateTime  @updatedAt
+  is_active    Boolean   @default(true)
+  last_used_at DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
 
-    user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-    @@index([user_id])
-    @@index([platform])
-    @@map("user_fcm_tokens")
+  @@index([user_id])
+  @@index([platform])
+  @@map("user_fcm_tokens")
 }
 
 enum FcmPlatform {
-    WEB
-    ANDROID
-    IOS
+  WEB
+  ANDROID
+  IOS
 }
 
 enum Role {
-    ADMIN
-    CUSTOMER
-    SHOP_OWNER
+  SUPERADMIN
+  ADMIN
+  CUSTOMER
+  SHOP_OWNER
 }
 
 model Admin {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
-    user_id String @unique
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id String @unique
 
-    @@map("admins")
+  @@map("admins")
 }
 
 model Owner {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    shop Shop?
+  shop Shop?
 
-    user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
-    user_id String @unique
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id String @unique
 
-    updated_at DateTime @updatedAt
+  updated_at DateTime @updatedAt
 
-    @@map("owners")
+  @@map("owners")
 }
 
 model Customer {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
-    user_id String @unique
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id String @unique
 
-    email        String?
-    phone_number String?
+  email        String?
+  phone_number String?
 
-    violations     CustomerViolation[]
-    suspend_until  DateTime?
-    suspend_reason String?
+  violations     CustomerViolation[]
+  suspend_until  DateTime?
+  suspend_reason String?
 
-    orders Order[]
-    cart   Cart?
+  orders    Order[]
+  cart      Cart?
+  discounts CustomerDiscount[]
 
-    // Data posisi terakhir pilih meja
-    canteen_id    Int?
-    floor         Int?
-    table_number  Int?
-    last_visit_at DateTime?
+  // Data posisi terakhir pilih meja
+  canteen_id    Int?
+  floor         Int?
+  table_number  Int?
+  last_visit_at DateTime?
 
-    updated_at DateTime @updatedAt
+  has_used_referral  Boolean @default(false)
+  used_referral_code String?
 
-    @@map("customers")
+  referral_code String? @unique
+
+  referral_usage_count Int @default(0) // maksimal 3, setelah itu diklaim dan direset 0
+
+  updated_at DateTime @updatedAt
+
+  @@map("customers")
 }

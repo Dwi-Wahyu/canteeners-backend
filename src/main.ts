@@ -7,6 +7,7 @@ import { AppModule } from './app.module';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import multipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
 
 async function bootstrap() {
   // Buat instance Fastify Adapter
@@ -36,6 +37,12 @@ async function bootstrap() {
     limits: {
       fileSize: 10 * 1024 * 1024,
     },
+  });
+
+  // REGISTRASI STATIC FILE
+  await fastifyInstance.register(fastifyStatic, {
+    root: join(process.cwd(), 'uploads'),
+    prefix: '/uploads/', // URL yang diakses: http://localhost:3002/uploads/...
   });
 
   // Jalankan server

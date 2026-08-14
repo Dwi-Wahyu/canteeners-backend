@@ -3,10 +3,8 @@ import {
   Post,
   Delete,
   Param,
-  UploadedFile,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  Body,
+  Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileManagerService } from './file-manager.service';
 import { extname, join } from 'node:path';
@@ -20,15 +18,15 @@ export class FileManagerController {
   constructor(private readonly fileManagerService: FileManagerService) {}
 
   @Post('upload')
-  async uploadFile(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 })],
-      }),
-    )
-    file: MultipartFile, // ✅ bukan any lagi
-    @Body('path') subPath: string,
-  ) {
+  async uploadFile(@Req() req: any) {
+    const file = await req.file();
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+
+    const subPathField = file.fields?.path;
+    const subPath = subPathField ? (subPathField as any).value : '';
+
     const uploadPath = join(process.cwd(), 'uploads', subPath || '');
     if (!existsSync(uploadPath)) {
       mkdirSync(uploadPath, { recursive: true });

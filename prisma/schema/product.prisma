@@ -1,88 +1,90 @@
 model Product {
-    id String @id @default(cuid())
+  id String @id @default(cuid())
 
-    created_at DateTime  @default(now())
-    updated_at DateTime? @updatedAt
+  created_at DateTime  @default(now())
+  updated_at DateTime? @updatedAt
 
-    name        String
-    description String? @db.Text
-    image_url   String
-    price       Float
-    cost        Float?
-    shop        Shop    @relation(fields: [shop_id], references: [id])
-    shop_id     String
+  name        String
+  description String? @db.Text
+  image_url   String
+  price       Float
+  cost        Float?
+  shop        Shop    @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+  shop_id     String
 
-    options     ProductOption[]
-    order_items OrderItem[]
-    cart_items  CartItem[]
+  options     ProductOption[]
+  order_items OrderItem[]
+  cart_items  CartItem[]
 
-    average_rating Float @default(0)
-    total_ratings  Int   @default(0)
+  average_rating Float @default(0)
+  total_ratings  Int   @default(0)
 
-    is_available Boolean @default(true)
+  is_available Boolean @default(true)
 
-    categories ProductCategory[]
+  categories ProductCategory[]
 
-    @@index([name])
-    @@index([shop_id])
-    @@map("products")
+  @@index([name])
+  @@index([shop_id])
+  @@map("products")
 }
 
 // Pilihan produk (Tingkat Kepedasan, Kematangan)
 model ProductOption {
-    id         String  @id @default(nanoid())
-    product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
-    product_id String
+  id         String  @id @default(nanoid())
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  product_id String
 
-    option String
-    values ProductOptionValue[]
+  option String
+  values ProductOptionValue[]
 
-    is_required Boolean           @default(false)
-    type        ProductOptionType @default(SINGLE)
+  is_required Boolean           @default(false)
+  type        ProductOptionType @default(SINGLE)
 
-    @@index([product_id])
-    @@map("product_options")
+  @@index([product_id])
+  @@map("product_options")
 }
 
 enum ProductOptionType {
-    SINGLE
-    MULTIPLE
+  SINGLE
+  MULTIPLE
 }
 
 // Nilai pilihan produk (Sedang, Pedas, Tidak Pedas)
 model ProductOptionValue {
-    id               String @id @default(nanoid())
-    value            String
-    additional_price Float?
+  id               String @id @default(nanoid())
+  value            String
+  additional_price Float?
 
-    product_option    ProductOption @relation(fields: [product_option_id], references: [id], onDelete: Cascade)
-    product_option_id String
+  product_option    ProductOption @relation(fields: [product_option_id], references: [id], onDelete: Cascade)
+  product_option_id String
 
-    order_items OrderItem[]
-    cart_items  CartItem[]
+  order_items OrderItem[]
+  cart_items  CartItem[]
 
-    @@map("product_options_values")
+  @@map("product_options_values")
 }
 
 model Category {
-    id        Int               @id @default(autoincrement())
-    name      String            @unique
-    slug      String            @unique
-    image_url String
-    products  ProductCategory[]
+  id              Int               @id @default(autoincrement())
+  name            String            @unique
+  slug            String            @unique
+  image_url       String
+  products        ProductCategory[]
+  discounts       Discount[]
+  shop_categories ShopCategory[]
 
-    @@map("categories")
+  @@map("categories")
 }
 
 model ProductCategory {
-    product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
-    product_id String
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  product_id String
 
-    category    Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
-    category_id Int
+  category    Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  category_id Int
 
-    @@id([product_id, category_id])
-    @@index([category_id])
-    @@index([product_id])
-    @@map("product_categories")
+  @@id([product_id, category_id])
+  @@index([category_id])
+  @@index([product_id])
+  @@map("product_categories")
 }

@@ -3,13 +3,14 @@ model Order {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  customer    Customer @relation(fields: [customer_id], references: [id])
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
   customer_id String
 
-  shop              Shop      @relation(fields: [shop_id], references: [id])
+  shop              Shop      @relation(fields: [shop_id], references: [id], onDelete: Cascade)
   shop_id           String
   estimation        Int? // dalam menit
   payment_proof_url String?
+  confirmed_at      DateTime? // waktu ketika shop menyetujui order (masuk ke WAITING_PAYMENT atau WAITING_SHOP_CONFIRMATION)
   processed_at      DateTime? // waktu ketika order mulai diproses setelah pembayaran di verifikasi
 
   rejected_reason  String?
@@ -29,6 +30,11 @@ model Order {
   complaint ShopComplaint?
   refund    Refund?
 
+  referral_code_used String? // Kode referral yang digunakan pelanggan saat order ini dibuat
+
+  applied_discounts     OrderDiscount[]
+  total_discount_amount Float           @default(0)
+
   payment_method PaymentMethod
 
   order_items OrderItem[]
@@ -45,6 +51,22 @@ model Order {
   @@index([customer_id, created_at]) // Untuk riwayat pelanggan (sortir by terbaru)
   @@index([status])
   @@map("orders")
+}
+
+model OrderDiscount {
+  id       String @id @default(uuid())
+  order    Order  @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id String
+
+  discount    Discount? @relation(fields: [discount_id], references: [id], onDelete: SetNull)
+  discount_id String?
+
+  name   String // Snapshot nama diskon/promo
+  amount Float // Nominal potongan yang diberikan
+
+  @@index([order_id])
+  @@index([discount_id])
+  @@map("order_discounts")
 }
 
 enum OrderType {
@@ -64,7 +86,7 @@ model OrderItem {
   quantity     Int
   // Harga Satuan Dasar (Snapshot saat checkout)
   price_at_add Float
-  // Quantity * (price_at_add + 1000 + total_options_price)
+  // Quantity * (price_at_add + total_options_price) + Distributed Commission
   subtotal     Float
   note         String?
 

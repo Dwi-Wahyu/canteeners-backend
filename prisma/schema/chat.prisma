@@ -1,8 +1,103 @@
 model QuickChat {
-    id      Int     @id @default(autoincrement())
-    message String
-    user    User?   @relation(fields: [user_id], references: [id])
-    user_id String?
+  id      Int     @id @default(autoincrement())
+  message String
+  user    User?   @relation(fields: [user_id], references: [id])
+  user_id String?
 
-    @@map("quick_chats")
+  @@map("quick_chats")
+}
+
+model Chat {
+  id String @id @default(uuid())
+
+  // Selalu urutkan participant_one_id < participant_two_id (string compare)
+  // di service layer sebelum insert/query — supaya pasangan A-B dan B-A
+  // tidak pernah dianggap dua chat berbeda. Lihat Bagian 3.
+  participant_one_id String
+  participant_one    User   @relation("ChatAsParticipantOne", fields: [participant_one_id], references: [id])
+  participant_two_id String
+  participant_two    User   @relation("ChatAsParticipantTwo", fields: [participant_two_id], references: [id])
+
+  type ChatType @default(CUSTOMER_OWNER)
+
+  // Makna tergantung `type`:
+  // - CUSTOMER_OWNER   -> null (percakapan persisten, lintas order, seperti sekarang)
+  // - CUSTOMER_COURIER -> order_id (chat khusus satu pengantaran)
+  // - ADMIN_SUPPORT    -> null, atau report_id kalau nanti dikaitkan ke UserReport
+  context_id String?
+
+  last_message           String?
+  last_message_type      MessageType @default(TEXT)
+  last_message_at        DateTime?
+  last_message_sender_id String?
+
+  // Json karena per-user, sama seperti struktur Firestore lama: { [userId]: number }
+  unread_counts Json @default("{}")
+
+  messages Message[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([participant_one_id, participant_two_id, type, context_id])
+  @@index([participant_one_id])
+  @@index([participant_two_id])
+  @@map("chats")
+}
+
+model Message {
+  id      String @id @default(uuid())
+  chat    Chat   @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  chat_id String
+
+  sender_id   String
+  text        String?
+  type        MessageType @default(TEXT)
+  attachments Json        @default("[]")
+
+  // Referensi order kalau type = ORDER (order chat bubble)
+  order_id String?
+
+  read_by String[] @default([])
+
+  created_at DateTime @default(now())
+
+  @@index([chat_id, created_at])
+  @@map("messages")
+}
+
+enum MessageType {
+  TEXT
+  ATTACHMENT
+  ORDER
+}
+
+enum ChatType {
+  CUSTOMER_OWNER
+  CUSTOMER_COURIER
+  ADMIN_SUPPORT
+}
+
+model Notification {
+  id           String @id @default(uuid())
+  recipient_id String
+
+  type    NotificationType
+  subtype String?
+  title   String
+  body    String?
+  data    Json             @default("{}")
+
+  is_read    Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@index([recipient_id, created_at])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  ORDER
+  COMPLAINT
+  REFUND
+  CHAT
 }

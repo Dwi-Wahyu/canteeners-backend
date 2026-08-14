@@ -7,41 +7,38 @@ datasource db {
 }
 
 model Canteen {
-  id        Int     @id @default(autoincrement())
+  id        Int           @id @default(autoincrement())
   name      String
   image_url String
+  slug      String?       @unique
+  maps      CanteenMap[]
   shops     Shop[]
-  slug      String? @unique
-
-  maps    CanteenMap[]
-  qrcodes TableQRCode[]
+  qrcodes   TableQRCode[]
 
   @@map("canteens")
 }
 
 model CanteenMap {
-  id Int @id @default(autoincrement())
-
+  id          Int           @id @default(autoincrement())
   image_url   String
   floor       Int
-  canteen     Canteen       @relation(references: [id], fields: [canteen_id])
   canteen_id  Int
-  qrcodes     TableQRCode[]
   table_count Int           @default(0)
+  canteen     Canteen       @relation(fields: [canteen_id], references: [id])
+  qrcodes     TableQRCode[]
 
   @@map("canteen_maps")
 }
 
 model TableQRCode {
-  id String @id @default(uuid())
-
+  id           String     @id @default(uuid())
   table_number Int
   floor        Int
-  canteen      Canteen    @relation(references: [id], fields: [canteen_id])
   canteen_id   Int
   image_url    String
-  map          CanteenMap @relation(references: [id], fields: [map_id])
   map_id       Int
+  canteen      Canteen    @relation(fields: [canteen_id], references: [id])
+  map          CanteenMap @relation(fields: [map_id], references: [id])
 
   @@unique([table_number, canteen_id, floor])
   @@map("table_qrcodes")
@@ -50,7 +47,18 @@ model TableQRCode {
 model Faq {
   id       Int    @id @default(autoincrement())
   question String
-  answer   String @db.Text
+  answer   String
 
   @@map("faqs")
+}
+
+model Banner {
+  id         Int      @id @default(autoincrement())
+  order      Int      @default(0)
+  file       String
+  cta_path   String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("banners")
 }

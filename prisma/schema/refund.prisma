@@ -18,10 +18,29 @@ model Refund {
   escalated_reason String? // alasan dieskalasi ke admin
 
   affected_items RefundItem[] // relasi ke item yang bermasalah
+  history        RefundHistory[] // riwayat status refund
 
   @@index([order_id])
   @@index([status])
   @@map("refunds")
+}
+
+model RefundHistory {
+  id        String @id @default(uuid())
+  refund_id String
+  refund    Refund @relation(fields: [refund_id], references: [id], onDelete: Cascade)
+
+  status RefundStatus
+  note   String?      @db.Text
+
+  actor_id   String? // ID User (Admin/Shop) yang melakukan aksi
+  actor_name String? // Nama User saat aksi dilakukan (untuk snapshot)
+  actor_role Role? // Role User saat aksi dilakukan
+
+  created_at DateTime @default(now())
+
+  @@index([refund_id])
+  @@map("refund_histories")
 }
 
 model RefundItem {
@@ -53,6 +72,7 @@ enum RefundStatus {
   APPROVED // disetujui
   REJECTED // ditolak
   PROCESSED // uang sudah dikembalikan (butuh konfirmasi user)
+  COMPLETED // refund selesai (sudah dikonfirmasi user)
   CANCELLED // dibatalkan user
   ESCALATED // dieskalasi ke admin karena deteksi fraud
 }
