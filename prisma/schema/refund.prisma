@@ -64,6 +64,7 @@ enum RefundReason {
   WRONG_ORDER // salah pesanan
   DAMAGED_FOOD // rusak
   MISSING_ITEM // kurang item
+  SHOP_CANCELLATION // pembatalan otomatis oleh kedai/sistem
   OTHER // lain-lain
 }
 
