@@ -28,6 +28,8 @@ model UserReport {
 
 enum CustomerViolationType {
   ORDER_CANCEL_WITHOUT_PAY
+  REFUND_FRAUD
+  REVIEW_VIOLATION
 }
 
 enum ReportStatus {
@@ -43,4 +45,47 @@ enum ReportReason {
   SPAM
   INAPPROPRIATE
   OTHER
+}
+
+model ShopViolation {
+  id       String @id @default(cuid())
+  shop_id  String
+  shop     Shop   @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+
+  type   ShopViolationType
+  source ShopViolationSource
+
+  // Relasi opsional ke bukti — hanya salah satu yang diisi
+  order_id   String?
+  refund_id  String?
+
+  order  Order?  @relation(fields: [order_id], references: [id], onDelete: SetNull)
+  refund Refund? @relation(fields: [refund_id], references: [id], onDelete: SetNull)
+
+  note         String?  @db.Text
+  reviewed_by  String?  // user_id admin yang mencatat (jika source = ADMIN)
+
+  created_at  DateTime @default(now())
+  reviewed_at DateTime?
+
+  @@index([shop_id])
+  @@index([type])
+  @@index([created_at])
+  @@map("shop_violations")
+}
+
+enum ShopViolationType {
+  HIGH_DAILY_CANCEL_RATE       // Pembatalan order tinggi dalam sehari
+  SLOW_ORDER_CONFIRMATION      // Konfirmasi order lambat berulang
+  HIGH_ORDER_LATE_RATE         // Sering melebihi estimasi penyelesaian
+  REFUND_IGNORED               // Refund tidak direspons hingga 1x24 jam
+  REFUND_SLOW_RESPONSE         // Respons refund lambat (mendekati batas)
+  POLICY_VIOLATION             // Melanggar syarat & ketentuan platform
+  REFUND_FRAUD_SUSPECTED       // Indikasi manipulasi atau kecurangan refund
+  REPEATED_CRITICAL_VIOLATIONS // Akumulasi pelanggaran berat berulang
+}
+
+enum ShopViolationSource {
+  ADMIN    // Dicatat manual oleh admin
+  SYSTEM   // Otomatis dari trigger (untuk pengembangan masa depan)
 }

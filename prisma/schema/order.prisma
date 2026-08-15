@@ -29,6 +29,7 @@ model Order {
   testimony ShopTestimony?
   complaint ShopComplaint?
   refund    Refund?
+  shop_violations ShopViolation[]
 
   referral_code_used String? // Kode referral yang digunakan pelanggan saat order ini dibuat
 
@@ -38,6 +39,8 @@ model Order {
   payment_method PaymentMethod
 
   order_items OrderItem[]
+
+  payment_histories OrderPaymentHistory[]
 
   post_order_type PostOrderType @default(DELIVERY_TO_TABLE)
   table_number    Int?
@@ -62,7 +65,7 @@ model OrderDiscount {
   discount_id String?
 
   name   String // Snapshot nama diskon/promo
-  amount Float // Nominal potongan yang diberikan
+  amount Float  // Nominal potongan yang diberikan
 
   @@index([order_id])
   @@index([discount_id])
@@ -112,4 +115,16 @@ enum PostOrderType {
   DELIVERY_TO_TABLE
   TAKEAWAY
   COURIER_DELIVERY
+}
+
+model OrderPaymentHistory {
+  id                String   @id @default(uuid())
+  order             Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id          String
+  payment_proof_url String
+  rejected_reason   String?
+  created_at        DateTime @default(now())
+
+  @@index([order_id])
+  @@map("order_payment_histories")
 }
