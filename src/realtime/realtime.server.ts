@@ -68,6 +68,7 @@ export class RealtimeServer {
     }
 
     this.server = Bun.serve<WSData>({
+      hostname: '0.0.0.0',
       port,
       fetch: (req, server) => {
         const url = new URL(req.url);
